@@ -43,7 +43,7 @@ module Autosign
         @log.debug 'validating using multiplexed external executables'
         policy_executables.each do |executable|
           @log.debug "attempting to validate using #{executable}"
-          results << IO.popen(executable + ' ' + certname.to_s, 'r+') { |obj| obj.puts raw_csr; obj.close_write; obj.read; obj.close; $CHILD_STATUS.to_i }
+          results << IO.popen(executable + ' ' + certname.to_s, 'r+') { |obj| obj.puts raw_csr; obj.close_write; obj.read; obj.close; $CHILD_STATUS.exitstatus }
           @log.debug "exit code from #{executable}: #{results.last}"
         end
         bool_results = results.map { |val| val == 0 }
