@@ -5,7 +5,7 @@ Tooling to make puppet autosigning easy, secure, and extensible
 
 ### Introduction
 
-This tool provides a CLI for performing puppet policy-based autosigning using JWT tokens. Read more at https://danieldreier.github.io/autosign.
+This tool provides a CLI for performing puppet policy-based autosigning using JWT tokens. Read more at http://voxpupuli.org/autosign/.
 
 ### Quick Start: How to Generate Tokens
 
