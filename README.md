@@ -1,5 +1,5 @@
 # autosign
- [![Dependency Status](https://gemnasium.com/danieldreier/autosign.svg)](https://gemnasium.com/danieldreier/autosign) [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/danieldreier/autosign) [![Inline docs](http://inch-ci.org/github/danieldreier/autosign.png)](http://inch-ci.org/github/danieldreier/autosign) [![Coverage Status](https://coveralls.io/repos/danieldreier/autosign/badge.svg?branch=master&service=github)](https://coveralls.io/github/danieldreier/autosign?branch=master) [![Gem Version](https://badge.fury.io/rb/autosign.svg)](http://badge.fury.io/rb/autosign)
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/voxpupuli/autosign) [![Gem Version](https://badge.fury.io/rb/autosign.svg)](http://badge.fury.io/rb/autosign)
 
 Tooling to make puppet autosigning easy, secure, and extensible
 
