@@ -15,7 +15,7 @@ This tool provides a CLI for performing OpenVox [policy-based autosigning](https
 
 Both OpenVox and Puppet require that agent SSL certificates be signed by the server's certificate authority.
 One can sign certificates in several ways:
-* Manually using the `puppet cert sign` command on the server
+* Manually using the `puppetserver ca sign` command on the server
 * Via graphical frontends like the Foreman or the PE web console
 * Automatically in an insecure way using naive autosigning
 * automatically and (potentially) more securely using policy-based autosigning (such as with this tool)
