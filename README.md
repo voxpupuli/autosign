@@ -1,15 +1,73 @@
 # autosign
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/voxpupuli/autosign) [![Gem Version](https://badge.fury.io/rb/autosign.svg)](http://badge.fury.io/rb/autosign)
 
-Tooling to make puppet autosigning easy, secure, and extensible
+Tooling to make OpenVox or Puppet autosigning easy, secure, and extensible
 
-### Introduction
+## Introduction
 
-This tool provides a CLI for performing puppet policy-based autosigning using JWT tokens. Read more at http://voxpupuli.org/autosign/.
+This tool provides a CLI for performing OpenVox [policy-based autosigning](https://www.puppet.com/docs/puppet/7/ssl_autosign.html#ssl_policy_based_autosigning) using JWT tokens.
 
-### Quick Start: How to Generate Tokens
+* Generate time-limited, reusable or one-time tokens
+* CLI tooling
+* Extensive logging
 
-##### 1. Install Gem on Puppet Master
+### Project Background
+
+Both OpenVox and Puppet require that agent SSL certificates be signed by the server's certificate authority.
+One can sign certificates in several ways:
+* Manually using the `puppetserver ca sign` command on the server
+* Via graphical frontends like the Foreman or the PE web console
+* Automatically in an insecure way using naive autosigning
+* automatically and (potentially) more securely using policy-based autosigning (such as with this tool)
+
+Policy-based autosigning calls an external executable to determine whether or not to sign the certificate signing request (CSR).
+The CSR is passed to the executable's `STDIN` and the agent's certificate name is passed as the sole parameter.
+Puppet does not profide a default policy autosign executable, so people are expected to write their own.
+
+Over the years, some have been written and released publicly,
+such as Chris Barker's [AWS autosign script](https://github.com/mrzarquon/mrzarquon-certsigner) 
+or David Lutterkort's [pre-shared key script](http://watzmann.net/blog/2014/06/puppet-autosign-policy.html).
+Generally speaking, these are written as one-off scripts, solving only a specific need.
+
+Most simple autosign scripts are based on validating one or more static strings (e.g. passwords, API keys, etc).
+Unfortunately, if an attacker can obtain that string they can sign their own certificate and grant themselves access to the Puppet infrastructure.
+This means that they can issue valid requests to the Puppet server, potentially allowing them to impersonate secure infrastructure and escalate privileges.
+People also frequently forget to delete the `csr_attributes.yaml` after generating a CSR, and as with any plain-text password the tendency is for the keys to be widely distributed.
+
+This tool solves these problems by generating time limited, one-time tokens that are only valid for a specific host, so that obtaining the token after provisioning is not useful to an attacker.
+
+### Functionality
+
+This gem provides functionality in several areas.
+
+1. A JWT-based token system for securely issuing autosign tokens
+2. a pluggable architecture for creating new autosign validation tools
+3. a CLI for managing autosign tokens
+4. multiplexing, allowing one or more existing autosign policy executables to be run as validators
+
+At the moment, if any one validator passes, the CSR is signed.
+In the future, we intend to provide the ability to require that all pass, and ideally provide more complex rules.
+
+## Security Model for JWT Tokens
+
+The goal of the JWT tokens is to place time, reusability, and `commonName` constraints on tokens.
+There are several expected use models:
+
+### Per-host tokens for automated provisioning
+
+During automated provisioning, a new token can be generated for each provisioned host.
+They will only be usable once, and will expire after a time period (2 hours by default).
+
+### Time-limited delegation of signing ability
+
+You can generate a wildcard token that is only valid for hours or days, then share it with another person who needs to provision systems.
+Use of the token will be logged, so if you generate individual tokens for different users it's possible to audit who authorized which certificates to be signed.
+After the time period expires, they will no longer be able to authorize more hosts, but the previously-authorized hosts continue to work.
+
+
+## Quick Start: How to Generate Tokens
+
+##### 1. Install Gem on OpenVox server
 ```shell
 gem install autosign
 ```
@@ -20,7 +78,7 @@ gem install autosign
 autosign config setup
 ```
 
-##### 3. Generate your first autosign token on the puppet master
+##### 3. Generate your first autosign token on the OpenVox server
 ```shell
 autosign generate foo.example.com
 ```
@@ -28,7 +86,7 @@ autosign generate foo.example.com
 The output will look something like
 ```
 Autosign token for: foo.example.com, valid until: 2015-07-16 16:25:50 -0700
-To use the token, put the following in ${puppet_confdir}/csr_attributes.yaml prior to running puppet agent for the first time:
+To use the token, put the following in ${puppet_confdir}/csr_attributes.yaml prior to running `puppet agent` for the first time:
 
 custom_attributes:
   challengePassword: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJkYXRhIjoie1wiY2VydG5hbWVcIjpcImZvby5leGFtcGxlLmNvbVwiLFwicmVxdWVzdGVyXCI6XCJEYW5pZWxzLU1hY0Jvb2stUHJvLTIubG9jYWxcIixcInJldXNhYmxlXCI6ZmFsc2UsXCJ2YWxpZGZvclwiOjcyMDAsXCJ1dWlkXCI6XCJkM2YyNzI0OC1jZDFmLTRhZmItYjI0MC02ZjBjMDU4NWJiZDNcIn0iLCJleHAiOiIxNDM3MDg5MTUwIn0.lC-EzWaV2dL81aLL7P-9mGwNbiOQDJWcoYjuSHVOqmaLtc7Wis5OZvHFOLln2Fn9qv98oSTnZsIkjmFpbI5dvA"
@@ -36,7 +94,7 @@ custom_attributes:
 
 The resulting output can be copied to `/etc/puppet/csr_attributes.yaml` on an agent machine prior to running puppet for the first time to add the token to the CSR as the `challengePassword` OID. (just copy-paste from one terminal to another to copy the text)
 
-### Quick Start: Puppet Master Configuration
+### Quick Start: OpenVox server Configuration
 
 Run through the previous quick start steps to get the gem installed, then configure puppet to use the `autosign-validator` executable as the policy autosign command:
 
@@ -52,7 +110,7 @@ chown puppet:puppet /var/log/autosign.log
 ```
 
 
-##### 2. Configure master
+##### 2. Configure server
 ```shell
 puppet config set autosign $(which autosign-validator) --section master
 ```
@@ -152,6 +210,5 @@ Starting with the 1.0.0 release the autosign gem requires ruby 2.4.  If you can'
 
 ### Further Reading
 
-- [https://danieldreier.github.io/autosign](https://danieldreier.github.io/autosign) has background on why this exists.
-- Automatically generated code documentation in YARDOC format is [available on rubydoc.info](http://rubydoc.info/github/danieldreier/autosign).
-- Look at the [puppet-autosign](https://travis-ci.org/danieldreier/puppet-autosign) puppet module to automate setup of this tool, and for a puppet function to generate tokens inside of Puppet, for example when provisioning systems in AWS.
+- Automatically generated code documentation in YARDOC format is [available on rubydoc.info](http://rubydoc.info/github/voxpupuli/autosign).
+- Look at the [puppet-autosign](https://github.com/voxpupuli/puppet-autosign) puppet module to automate setup of this tool, and for a puppet function to generate tokens inside of Puppet, for example when provisioning systems in AWS.
