@@ -92,7 +92,7 @@ custom_attributes:
   challengePassword: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJkYXRhIjoie1wiY2VydG5hbWVcIjpcImZvby5leGFtcGxlLmNvbVwiLFwicmVxdWVzdGVyXCI6XCJEYW5pZWxzLU1hY0Jvb2stUHJvLTIubG9jYWxcIixcInJldXNhYmxlXCI6ZmFsc2UsXCJ2YWxpZGZvclwiOjcyMDAsXCJ1dWlkXCI6XCJkM2YyNzI0OC1jZDFmLTRhZmItYjI0MC02ZjBjMDU4NWJiZDNcIn0iLCJleHAiOiIxNDM3MDg5MTUwIn0.lC-EzWaV2dL81aLL7P-9mGwNbiOQDJWcoYjuSHVOqmaLtc7Wis5OZvHFOLln2Fn9qv98oSTnZsIkjmFpbI5dvA"
   ```
 
-The resulting output can be copied to `/etc/puppet/csr_attributes.yaml` on an agent machine prior to running puppet for the first time to add the token to the CSR as the `challengePassword` OID. (just copy-paste from one terminal to another to copy the text)
+The resulting output can be copied to `/etc/puppetlabs/puppet/csr_attributes.yaml` on an agent machine prior to running puppet for the first time to add the token to the CSR as the `challengePassword` OID. (just copy-paste from one terminal to another to copy the text)
 
 ### Quick Start: OpenVox server Configuration
 
